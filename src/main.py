@@ -107,28 +107,8 @@ def hash_func(PSs, Ks, Ts):
 			signature = tuple(  [ bit_to_int(row[index:index + b]) for index in indices]  ) # sign format: tuple
 			table[signature].append(node)
 
-	
 	return tables, f_rep
 	
-
-
-
-def emb_svd(feature_matrix, k):
-	temp = scipy.sparse.csc_matrix(feature_matrix)
-	U,s,V = sparsesvd.sparsesvd(temp, k)
-	# S = sps.diag(s,dtype=float)
-	#####################
-
-	# U,s,V = svds(feature_matrix, k)
-	S = np.diag(s)
-	
-	# print '----'
-	# print U
-	# print S
-	emb = np.dot(U.T, (S ** 0.5))
-	# g_sum = np.dot((S**0.5), V)
-
-	return emb
 
 
 def get_init_features(graph, base_features, nodes_to_explore):
@@ -158,11 +138,9 @@ def get_feature_n_buckets(feature_matrix, num_buckets, bucket_max_value):
 		for i in range(cur_P):
 			result_cum.append(result_sum)
 			n_buckets = max(bucket_max_value, int(math.log(max(max(feature_matrix[:,i]), 1), num_buckets) + 1))
-			# print max(feature_matrix[:,i])
 			result_sum += n_buckets
 			result_ind.append(n_buckets)
-			
-			
+				
 	else:
 		for i in range(cur_P):
 			result_cum.append(result_sum)
@@ -180,10 +158,7 @@ def feature_binning(graph, init_feature_matrix, nodes_to_explore, S, i):
 	feature_matrix_seq = np.zeros([graph.num_nodes, feature_wid_sum * len(graph.cat_dict.keys())])
 
 	N, P = init_feature_matrix.shape
-
 	id_cat_dict = graph.id_cat_dict
-
-	
 
 	for node in nodes_to_explore:
 		if node % 50000 == 0:
@@ -219,7 +194,6 @@ def feature_binning(graph, init_feature_matrix, nodes_to_explore, S, i):
 
 
 
-
 def construct_prox_structure(graph, nodes_to_explore, base_features, S_out, dist_scope):
 
 	init_feature_matrix = get_init_features(graph, base_features, nodes_to_explore)
@@ -241,7 +215,6 @@ def parse_weighted_temporal(input_file_path, delimiter):
 	time_edge_dict = None
 	start_time = 0
 	end_time = 0
-	# node_roadmap = None
 
 
 	raw = np.genfromtxt(input_file_path, dtype=int, delimiter=delimiter)
@@ -266,12 +239,6 @@ def parse_weighted_temporal(input_file_path, delimiter):
 			dsts = np.append(dsts, max(max(srcs), max(dsts)))
 			weis = np.append(weis, 0)
 			check_eq = False
-
-		# srcs_tmp = srcs
-
-		# srcs = np.append(srcs, dsts)
-		# dsts = np.append(dsts, srcs_tmp)
-		# weis = np.append(weis, weis)
 
 		adj_matrix_global = sps.lil_matrix( sps.csc_matrix((weis, (srcs, dsts))))
 
@@ -315,13 +282,6 @@ def parse_weighted_temporal(input_file_path, delimiter):
 			edge_time_dict[edge].append(timestamp)
 			time_edge_dict[timestamp].append(edge)
 
-
-			# edge_r = (dst, src, wei)
-			# edge_time_dict[edge_r].append(timestamp)
-			# time_edge_dict[timestamp].append(edge_r)
-			# tup = (dst, wei, timestamp)
-			# node_roadmap[src].append(tup)
-
 		fIn.close()
 
 
@@ -349,18 +309,10 @@ def svd_emb(PSs, Ks):
 
 def feature_2_embedding(feature_matrix = None, k = 17):
 
-	####### TODO #######
 	temp = sps.csc_matrix(feature_matrix)
 	U,s,V = sparsesvd.sparsesvd(temp, k)
-	# S = sps.diag(s,dtype=float)
-	#####################
 
-	# U,s,V = svds(feature_matrix, k)
 	S = np.diag(s)
-	
-	# print '----'
-	# print U
-	# print S
 	emb = np.dot(U.T, (S ** 0.5))
 	# g_sum = np.dot((S**0.5), V)
 
@@ -399,8 +351,6 @@ def construct_cat(input_gt_path, delimiter):
 			result[int(cat)].add( int(node_id) )
 			id_cat_dict[int(node_id)] = int(cat)
 
-
-
 		else:
 			sys.exit('Cat file format not supported')
 
@@ -429,8 +379,6 @@ if __name__ == '__main__':
 	# input_file_path = cur_file_path + '/static_graphs/citseer_wei_splitted_base.tsv'
 	# input_gt_path = cur_file_path + '/static_graphs/citseer_wei_splitted_cat.tsv'
 
-	# input_file_path = cur_file_path + '/static_graphs/yahoo-msg-heter_wei_splitted.tsv'
-	# input_gt_path = cur_file_path + '/static_graphs/yahoo-msg-heter_wei_splitted_cat.tsv'
 	# input_file_path = cur_file_path + '/real_graphs/wiki-talk-temporal_temp_splitted.tsv'
 	# input_gt_path = cur_file_path + '/real_graphs/wiki-talk-temporal_temp_splitted_cat.tsv'
 	# input_file_path = cur_file_path + '/real_graphs/soc-sign-bitcoinotc_wei_temp_splitted.tsv'
@@ -501,34 +449,23 @@ if __name__ == '__main__':
 	neighbor_list_static = SM.construct_neighbor_list()
 	neighbor_list_dynamic = DM.construct_neighbor_list()
 
-
 	CAT_DICT, ID_CAT_DICT = construct_cat(input_gt_path, delimiter)
-
 
 	G = Graph(adj_matrix = adj_matrix, edge_time_dict = edge_time_dict, num_nodes = num_nodes, num_edges = num_edges, weighted = weighted, directed = directed, check_eq = check_eq, 
 		start_time = start_time, end_time = end_time, num_buckets = num_buckets, bucket_max_value = bucket_max_value, cat_dict = CAT_DICT, id_cat_dict = ID_CAT_DICT, 
 		neighbor_list_static = neighbor_list_static, neighbor_list_dynamic = neighbor_list_dynamic, time_edge_dict = time_edge_dict, dist_scope = dist_scope)
 
 	walks, S_out = G.simulate_walks(walks_num, walk_length, nodes_to_explore, walk_mod, graph_mod, init_mod)
-	
+	sps.save_npz('./S.npz', sps.coo_matrix(S_out))
+
 	fOut = open('walks.txt', 'w')
 	for walk in walks:
 		fOut.write(str(walk) + '\n')
 	fOut.close()
 
 
-	sps.save_npz('./S.npz', sps.coo_matrix(S_out))
-
 	PSs = construct_prox_structure(G, nodes_to_explore, base_features, S_out, dist_scope)
-	# print '====='
-	# print PSs
 
-	# Ks = [K*1/4, K/4, K/4, K/4]
-	# Ts = [4, 4, 4, 4]
-
-	
-	# Ks = [K*2/4, K*2/4]
-	# Ts = [4, 4]
 
 	tables, rep = hash_func(PSs, Ks, Ts)
 
@@ -541,15 +478,10 @@ if __name__ == '__main__':
 	print '-------------'
 	np.savetxt('rep.tsv', rep, fmt='%i', delimiter = '\t')
 	sps.save_npz('./rep.npz', sps.coo_matrix(rep))
-
-
 	
 	# table_1s = tables[0]
-	# table_2s = tables[1]
 	# print len(table_1s)
-	# print len(table_2s)
 	
-
 	fOut = open('hashtable_1s.tsv', 'w')
 	for key in tables[0]:
 		key_trans = ''.join([str(ele) for ele in key])
@@ -566,7 +498,6 @@ if __name__ == '__main__':
 		fOut.write(str(key_trans) + delimiter + str(tables[2][key]) + '\n')
 	fOut.close()
 
-	print rep[1]
 
 
 
