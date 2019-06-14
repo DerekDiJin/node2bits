@@ -17,16 +17,6 @@ from scipy.sparse.linalg import svds, eigs
 import sparsesvd
 import scipy.spatial.distance as distance
 
-# import sklearn
-# from sklearn.model_selection import KFold
-# from sklearn.linear_model import LogisticRegression
-# from sklearn.naive_bayes import MultinomialNB
-# from sklearn.model_selection import train_test_split
-# from sklearn.model_selection import validation_curve
-# from sklearn.multiclass import OneVsRestClassifier
-# from sklearn.svm import SVC
-# from sklearn import svm
-# from sklearn import preprocessing
 from sklearn.cluster import KMeans
 from sklearn.decomposition import NMF, DictionaryLearning
 from sklearn.manifold import TSNE
@@ -37,57 +27,6 @@ import collections
 from collections import defaultdict
 
 
-def aggregate_walks(walks, walks_num, nodes_to_explore, dist_scope):
-
-	print '[Aggregating walks]'
-
-	result_out = [ {i:[] for i in range(dist_scope)} for _ in nodes_to_explore ]
-	# result_in = [ {i:[] for i in range(dist_scope)} for _ in nodes_to_explore ]
-	'''
-		Return (2 dicts): 
-			node - {1:[nodes], 2:[nodes], 3:[nodes]}
-		Parameters: 
-			dist_scope: dist scopres to explore
-	'''
-
-
-	N = len( nodes_to_explore )
-
-	counter = 0
-	for walk in walks:
-
-		if counter % 50000 == 0:
-			print '[Current walk] ' + str(counter)
-		counter += 1
-
-		if len(walk) <= dist_scope:
-
-			head = walk[0]
-
-			for dist in range(1, len(walk)):
-				result_out[head][dist-1].append( walk[dist] )
-
-
-		else:
-			for idx in range(len(walk) - dist_scope):
-				
-				walk_seq = walk[idx: idx+dist_scope+1]
-				head = walk_seq[0]
-				tail = walk_seq[-1]
-
-				for dist in range(1, dist_scope+1):
-
-					# print 'walk_seq:'
-					# print walk_seq
-
-					# print 'head: ' + str(head)
-					# print 'tail: ' + str(tail)
-
-					result_out[head][dist-1].append( walk_seq[dist] )
-					# result_in[tail][dist].append( walk_seq[dist_scope-dist-1] )
-
-	return result_out#, result_in
-
 def get_sketch_b(K, P, idx):
 
 	file_name = 'sketch_' + str(idx) + '.tsv'
@@ -97,19 +36,6 @@ def get_sketch_b(K, P, idx):
 
 
 def get_sketch(K, P, idx):
-
-	# result = sps.random(N, P, density=0.5, format='coo')
-	# result = np.zeros((K, P))
-
-	# for k in range(K):
-	# 	tmp = np.random.choice([-1, 1], size=(P))
-	# 	tmp_map = collections.Counter(tmp)
-
-	# 	while (tmp_map[1] - tmp_map[-1]) > P * 0.05:
-	# 		tmp = np.random.choice([-1, 1], size=(P))
-	# 		tmp_map = collections.Counter(tmp)
-
-	# 	result[k,:] = tmp
 
 	file_name = 'sketch_' + str(idx) + '.tsv'
 	tmp = np.random.choice([-1, 1], size=(K, P))
@@ -181,22 +107,9 @@ def hash_func(PSs, Ks, Ts):
 			signature = tuple(  [ bit_to_int(row[index:index + b]) for index in indices]  ) # sign format: tuple
 			table[signature].append(node)
 
-
-
-
 	
 	return tables, f_rep
 	
-
-	# l = result.shape[1]
-	# b = l/16
-
-	# for i in range(N):
-	# 	
-	# 	
-	# 	# print 'signature:'
-	# 	# print signature
-	# 	
 
 
 
@@ -299,16 +212,8 @@ def feature_binning(graph, init_feature_matrix, nodes_to_explore, S, i):
 					bucket_index = int(node_feature)
 
 				bucket_index = min( bucket_index, (feature_wid_ind[p]-1) )
-
-
 				global_idx = cat_idx * feature_wid_sum + feature_idx + bucket_index
 				feature_matrix_seq[node, global_idx] += cur_neighbor_dict[neighbor]
-
-
-	# np.set_printoptions(threshold=np.nan)
-
-	# print '========='
-	# print feature_matrix_seq
 
 	return feature_matrix_seq
 
@@ -322,17 +227,7 @@ def construct_prox_structure(graph, nodes_to_explore, base_features, S_out, dist
 	feature_matrices = []
 
 	for i in range(dist_scope):
-
 		feature_matrices.append( feature_binning(graph, init_feature_matrix, nodes_to_explore, S_out, i) )
-	
-	
-	# init_feature_matrix = init_feature_matrix_seq
-
-	# U = emb_svd(init_feature_matrix, feature_rank)
-
-	# kmeans = KMeans(n_clusters=num_roles, random_state=0).fit(U)
-	# role_mapping = kmeans.labels_
-	# result = dict(zip(nodes_to_explore, role_mapping))
 
 	return feature_matrices
 
@@ -544,32 +439,7 @@ if __name__ == '__main__':
 	input_gt_path = cur_file_path + '/real_graphs/soc-sign-bitcoinalpha_wei_temp_splitted_cat.tsv'
 	# input_file_path = cur_file_path + '/real_graphs/digg_wei_temp_undir_splitted.tsv'
 	# input_gt_path = cur_file_path + '/real_graphs/digg_wei_temp_undir_splitted_cat.tsv'
-	# input_file_path = cur_file_path + '/toy_graphs/yahoo-msg-heter_wei_splitted.tsv'
-	# input_gt_path = cur_file_path + '/toy_graphs/yahoo-msg-heter_wei_splitted_cat.tsv'
-	# input_gt_path = cur_file_path + '/toy_graphs/yahoo-msg-heter_cat.tsv'
-	# input_file_path = cur_file_path + '/toy_graphs/test1_splitted.tsv'
-	# input_file_path = cur_file_path + '/toy_graphs/test1_temporal.tsv'
-	# input_gt_path = cur_file_path + '/toy_graphs/test1_splitted_cat.tsv'
-	# input_file_path = cur_file_path + '/toy_graphs/test1.tsv'
-	# input_gt_path = cur_file_path + '/toy_graphs/test1_cat.tsv'
 
-	##############################
-	# for exp
-	##############################
-	# input_file_path = cur_file_path + '/real_graphs/yahoo-msg-heter/yahoo-msg-heter_wei.tsv'
-	# input_gt_path = cur_file_path + '/real_graphs/yahoo-msg-heter/yahoo-msg-heter_cat.tsv'
-	# input_file_path = cur_file_path + '/exp/ER_100_500.tsv'
-	# input_gt_path = cur_file_path + '/exp/ER_100_500_cat.tsv'
-	# input_file_path = cur_file_path + '/exp/ER_1000_5000.tsv'
-	# input_gt_path = cur_file_path + '/exp/ER_1000_5000_cat.tsv'
-	# input_file_path = cur_file_path + '/exp/ER_10000_50000.tsv'
-	# input_gt_path = cur_file_path + '/exp/ER_10000_50000_cat.tsv'
-	# input_file_path = cur_file_path + '/exp/ER_100000_500000.tsv'
-	# input_gt_path = cur_file_path + '/exp/ER_100000_500000_cat.tsv'
-	# input_file_path = cur_file_path + '/exp/ER_1000000_5000000.tsv'
-	# input_gt_path = cur_file_path + '/exp/ER_1000000_5000000_cat.tsv'
-	# input_file_path = cur_file_path + '/exp/ER_10000000_50000000.tsv'
-	# input_gt_path = cur_file_path + '/exp/ER_10000000_50000000_cat.tsv'
 	##############################
 
 	delimiter = " "
@@ -644,11 +514,9 @@ if __name__ == '__main__':
 	fOut = open('walks.txt', 'w')
 	for walk in walks:
 		fOut.write(str(walk) + '\n')
-
 	fOut.close()
 
-	# print S_out
-	# S_out = aggregate_walks(walks, walks_num, nodes_to_explore, dist_scope)
+
 	sps.save_npz('./S.npz', sps.coo_matrix(S_out))
 
 	PSs = construct_prox_structure(G, nodes_to_explore, base_features, S_out, dist_scope)
@@ -699,14 +567,6 @@ if __name__ == '__main__':
 	fOut.close()
 
 	print rep[1]
-
-
-
-
-
-
-
-
 
 
 
