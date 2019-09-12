@@ -360,16 +360,19 @@ def construct_cat(input_gt_path, delimiter):
 
 if __name__ == '__main__':
 	
-	if len(sys.argv) != 1:
-		sys.exit('usage: stats_edges.py <input_file_path>')
+	if len(sys.argv) != 4:
+		sys.exit('usage: stats_edges.py <input_file_path> <input_gt_path> <output_file_path>')
 
 
 	# assume the graph is undirected, unweighted
 	weighted = True
 	directed = True
 
-	# input_file_path = sys.argv[1]
-	cur_file_path = str(Path().resolve().parent)
+	input_file_path = sys.argv[1]
+	input_gt_path = sys.argv[2]
+	output_file_path = sys.argv[3]
+
+	# cur_file_path = str(Path().resolve().parent)
 
 	# input_file_path = cur_file_path + '/link_prediction_graphs/yahoo-msg-heter/yahoo-msg-heter_wei_sample_0.6.tsv'
 	# input_gt_path = cur_file_path + '/link_prediction_graphs/yahoo-msg-heter/yahoo-msg-heter_cat.tsv'
@@ -383,8 +386,8 @@ if __name__ == '__main__':
 	# input_gt_path = cur_file_path + '/real_graphs/wiki-talk-temporal_temp_splitted_cat.tsv'
 	# input_file_path = cur_file_path + '/real_graphs/soc-sign-bitcoinotc_wei_temp_splitted.tsv'
 	# input_gt_path = cur_file_path + '/real_graphs/soc-sign-bitcoinotc_wei_temp_splitted_cat.tsv'
-	input_file_path = cur_file_path + '/real_graphs/soc-sign-bitcoinalpha_wei_temp_splitted_base.tsv'
-	input_gt_path = cur_file_path + '/real_graphs/soc-sign-bitcoinalpha_wei_temp_splitted_cat.tsv'
+	# input_file_path = cur_file_path + '/real_graphs/soc-sign-bitcoinalpha_wei_temp_splitted_base.tsv'
+	# input_gt_path = cur_file_path + '/real_graphs/soc-sign-bitcoinalpha_wei_temp_splitted_cat.tsv'
 	# input_file_path = cur_file_path + '/real_graphs/digg_wei_temp_undir_splitted.tsv'
 	# input_gt_path = cur_file_path + '/real_graphs/digg_wei_temp_undir_splitted_cat.tsv'
 
