@@ -1,6 +1,6 @@
 # node2bits
 
-**Paper**: Di Jin, Ryan A. Rossi, Danai Koutra. node2bits: Compact Time- and Attribute-aware Node Representations for User Stitching. ACM SIGKDD International Conference on Knowledge Discovery and Data Mining (KDD), 2019.
+**Paper**: Di Jin, Mark Heimann, Ryan A. Rossi, Danai Koutra. node2bits: Compact Time- and Attribute-aware Node Representations for User Stitching. ACM SIGKDD International Conference on Knowledge Discovery and Data Mining (KDD), 2019.
 
 *Link*: <TO APPEAR> 
 
