@@ -8,7 +8,7 @@ import collections
 
 class Graph():
 
-	def __init__(self, adj_matrix = None, edge_time_dict = None, num_nodes = 0, num_edges = 0, weighted = False, directed = False, start_time = None, end_time = None, 
+	def __init__(self, adj_matrix = None, edge_time_dict = None, num_nodes = 0, num_edges = 0, start_time = None, end_time = None, 
 		check_eq = True, nodes_to_explore = None, num_buckets = 0, bucket_max_value = 0, neighbor_list_static = None, neighbor_list_dynamic = None, time_edge_dict = None, 
 		cat_dict = None, id_cat_dict = None, dist_scope = 0):
 	
@@ -16,8 +16,6 @@ class Graph():
 		self.edge_time_dict = edge_time_dict
 		self.num_nodes = num_nodes
 		self.num_edges = num_edges
-		self.weighted = weighted
-		self.directed = directed
 		self.start_time = start_time
 		self.end_time = end_time
 		self.check_eq = check_eq
@@ -208,8 +206,6 @@ class RW():
 
 	def preprocess_transition_probs(self):
 		adj_matrix = self.graph.adj_matrix
-		directed = self.graph.directed
-		weighted = self.graph.weighted
 		neighbor_list = self.graph.neighbor_list_static
 
 		# <TODO>: add cases about directed / weighted
@@ -423,6 +419,7 @@ def get_delimiter(input_file_path):
 	elif ".tsv" in input_file_path:
 		delimiter = "\t"
 	else:
+		print input_file_path
 		sys.exit('Format not supported.')
 
 	return delimiter
@@ -538,6 +535,18 @@ def edges_sample(time_edge_dict, c, init_mod):
 
 
 
+def write_embedding(rep, output_file_path):
+	N, K = rep.shape
 
+	fOut = open(output_file_path, 'w')
+	fOut.write(str(N) + ' ' + str(K) + '\n')
+
+	for i in range(N):
+		cur_line = ' '.join([str(np.round(ii, 6)) for ii in rep[i,:]])
+		fOut.write(str(i) + ' ' + cur_line + '\n')
+
+	fOut.close()
+
+	return
 
 

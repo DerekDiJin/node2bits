@@ -29,27 +29,11 @@ def get_sketch(K, P, idx):
 
 	file_name = 'sketch_' + str(idx) + '.tsv'
 	tmp = np.random.choice([-1, 1], size=(K, P))
-	np.savetxt(file_name, tmp, delimiter='\t', fmt='%i')
+	# np.savetxt(file_name, tmp, delimiter='\t', fmt='%i')
 	return tmp
 
 def bit_to_int(binary_list):
-	# print binary_list
 	return int(''.join([str(ele) for ele in binary_list]), 2)
-
-def list_to_ints(l):
-	'''
-	Converts a list of values to str of ints
-	'''
-	# return ''.join(str(int(ele)) for ele in l)
-	return [int(ele) for ele in l]
-
-def combine_list(dict_in):
-	result = []
-
-	for ele in dict_in:
-		result += dict_in[ele]
-	return result
-
 
 def hash_func(PSs, Ks, Ts):
 	print '[Hasing cosine sketch begins]'
@@ -68,22 +52,15 @@ def hash_func(PSs, Ks, Ts):
 		table = tables[idx]
 		indices_back = [ b*i for i in range(B) ]
 		indices = random.sample(indices_back, B/2)	# OR-construction: randomly select B-T bands
-		print 'indices:'
-		print indices
-
-		sps.save_npz('./PS.npz', sps.coo_matrix(PS))
+		print '[indices] ' + str(indices)
 
 		N, P = PS.shape
-		# projection = np.zeros((K, N), dtype=int)
-		# result = np.zeros((N, K), dtype=int)
 
 		sketches = get_sketch(K, P, idx)
-		print ':('
-		print sketches.shape
+		# print sketches.shape
 		projection = np.matmul(PS, sketches.T).astype(int)
 		result = (np.sign(projection) + 1) / 2
 
-		print result
 
 		if idx == 0:
 			f_rep = result
@@ -154,9 +131,6 @@ def feature_binning(graph, init_feature_matrix, nodes_to_explore, S, i):
 		if node % 50000 == 0:
 			print "[Generate combined feature vetor] node: " + str(node)
 
-		# combined_feature_sequence = get_combined_feature_sequence(graph, node, 
-			# input_dense_matrix = init_feature_matrix, feature_wid_ind = feature_wid_ind, S_list=S[node][i])#------< resume here.
-		
 		S_list = S[node][i]
 		cur_neighbors = set(S_list)
 		cur_neighbor_dict = dict([x,S_list.count(x)/float(len(S_list))] for x in set(S_list))
@@ -208,7 +182,6 @@ def parse_weighted_temporal(input_file_path, delimiter):
 
 
 	raw = np.genfromtxt(input_file_path, dtype=int, delimiter=delimiter)
-	print raw
 	ROW, COL = raw.shape
 	num_edges = ROW
 
@@ -280,6 +253,15 @@ def parse_weighted_temporal(input_file_path, delimiter):
 
 	return check_eq, num_nodes, num_edges, adj_matrix_global, edge_time_dict, time_edge_dict, start_time, end_time
 
+def str2bool(v):
+	if isinstance(v, bool):
+	   return v
+	if v.lower() in ('yes', 'true', 't', 'y', '1'):
+		return True
+	elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+		return False
+	else:
+		raise argparse.ArgumentTypeError('Boolean value expected.')
 
 
 def construct_cat(input_gt_path, delimiter):
@@ -342,41 +324,43 @@ def parse_args():
 
 	parser.add_argument('--walk_length', type=int, default=20, help='The length of the walk')
 
+	parser.add_argument('--walk_mod', nargs='?', default='early', help='The random walk mode. Could be <random>, <early> or <late>.')
+
+	parser.add_argument('--ignore_time', type=str2bool, default=False, help='Ignore the timestamps. Only used when the graph is dynamic.')
+
 	return parser.parse_args()
 
 
 if __name__ == '__main__':
-	
-	if len(sys.argv) != 4:
-		sys.exit('usage: stats_edges.py <input_file_path> <input_gt_path> <output_file_path>')
+
+	args = parse_args()
 
 
-	weighted = True
-	directed = True
-
-	input_file_path = sys.argv[1]
-	input_gt_path = sys.argv[2]
-	output_file_path = sys.argv[3]
-
+	input_file_path = args.input
+	input_gt_path = args.cat
+	output_file_path = args.output
 	dim = args.dim
 	scope = args.scope
 	num_buckets = args.base
-	walks_num = args.walk_num
+	walk_num = args.walk_num
 	walk_length = args.walk_length
+	walk_mod = args.walk_mod
+	graph_mod_external = args.ignore_time
 
 	print '----------------------------------'
 	print '[Input graph file] ' + input_file_path
 	print '[Input category file] ' + input_gt_path
 	print '[Output embedding file] ' + output_file_path
 	print '[Embedding dimension] ' + str(dim)
-	print '[Number of levels] ' + str(L)
+	print '[Value of scope] ' + str(scope)
 	print '[Base of logarithm binning] ' + str(num_buckets)
-	print '[The number of walks] ' + str(walks_num)
-	print '[The length of a walk]' + str(walk_length)
+	print '[The number of walks] ' + str(walk_num)
+	print '[The length of a walk] ' + str(walk_length)
 	print '----------------------------------'
 
-
-	##############################
+	##########################################
+	# Initialize
+	##########################################
 
 	delimiter = get_delimiter(input_file_path)
 
@@ -394,21 +378,20 @@ if __name__ == '__main__':
 
 	Ks = [dim/scope] * (scope - 1)
 	Ks += [dim - sum(Ks)]
-	Ts = [4 for _ in range(len(dims))]
+	Ts = [4 for _ in range(len(Ks))]
 
+	# The initial timestamp to perform random walk. 'late' mode would result in short walks with smaller node contexts. 
 	init_mod = 'early'
-	walk_mod = 'early'
-
-	graph_mod_external = 'static' # <Set this to 'static' only when we want to perform static analysis on dynamic graphs todo: remove this if necessary>
 
 	##########################################
 
 
 	graph_mod = 'static' if edge_time_dict is None else 'dynamic'
 	print '[Graph mode detected] ' + graph_mod
-	graph_mod = graph_mod_external if graph_mod != graph_mod_external else graph_mod
-	print '[Graph mode set as] ' + graph_mod
 
+	if graph_mod is 'dynamic' and graph_mod_external is True:
+		graph_mod = 'static'
+		print '[Graph mode set as] ' + graph_mod
 
 	SM = Static_Methods(adj_matrix = adj_matrix, nodes_to_explore = nodes_to_explore)
 	DM = Dynamic_Methods(adj_matrix = adj_matrix, nodes_to_explore = nodes_to_explore, edge_time_dict = edge_time_dict)
@@ -417,49 +400,31 @@ if __name__ == '__main__':
 
 	CAT_DICT, ID_CAT_DICT = construct_cat(input_gt_path, delimiter)
 
-	G = Graph(adj_matrix = adj_matrix, edge_time_dict = edge_time_dict, num_nodes = num_nodes, num_edges = num_edges, weighted = weighted, directed = directed, check_eq = check_eq, 
+	G = Graph(adj_matrix = adj_matrix, edge_time_dict = edge_time_dict, num_nodes = num_nodes, num_edges = num_edges, check_eq = check_eq, 
 		start_time = start_time, end_time = end_time, num_buckets = num_buckets, bucket_max_value = 30, cat_dict = CAT_DICT, id_cat_dict = ID_CAT_DICT, 
 		neighbor_list_static = neighbor_list_static, neighbor_list_dynamic = neighbor_list_dynamic, time_edge_dict = time_edge_dict, dist_scope = scope)
 
 	walks, S_out = G.simulate_walks(walk_num, walk_length, nodes_to_explore, walk_mod, graph_mod, init_mod)
-	sps.save_npz('./S.npz', sps.coo_matrix(S_out))
-
-	fOut = open('walks.txt', 'w')
-	for walk in walks:
-		fOut.write(str(walk) + '\n')
-	fOut.close()
-
 
 	PSs = construct_prox_structure(G, nodes_to_explore, base_features, S_out, scope)
 
-
 	tables, rep = hash_func(PSs, Ks, Ts)
 
-	print '-------------'
-	np.savetxt('rep.tsv', rep, fmt='%i', delimiter = '\t')
+	print '[Write binary embeddings]'
+	write_embedding(rep, output_file_path)
 	sps.save_npz('./rep.npz', sps.coo_matrix(rep))
 	
+
+	print '[Write hashtables]'
+	for idx in range(scope):
+
+		output_file_path = 'hashtable_' + str(idx+1) + '.tsv'
+
+		fOut = open(output_file_path, 'w')
+		for key in tables[idx]:
+			key_trans = ''.join([str(ele) for ele in key])
+			fOut.write(str(key_trans) + delimiter + str(tables[idx][key]) + '\n')
+		fOut.close()
 	
-	fOut = open('hashtable_1s.tsv', 'w')
-	for key in tables[0]:
-		key_trans = ''.join([str(ele) for ele in key])
-		fOut.write(str(key_trans) + delimiter + str(tables[0][key]) + '\n')
-	fOut.close()
-	fOut = open('hashtable_2s.tsv', 'w')
-	for key in tables[1]:
-		key_trans = ''.join([str(ele) for ele in key])
-		fOut.write(str(key_trans) + delimiter + str(tables[1][key]) + '\n')
-	fOut.close()
-	fOut = open('hashtable_3s.tsv', 'w')
-	for key in tables[2]:
-		key_trans = ''.join([str(ele) for ele in key])
-		fOut.write(str(key_trans) + delimiter + str(tables[2][key]) + '\n')
-	fOut.close()
-
-
-
-
-
-
 
 
