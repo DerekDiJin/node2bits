@@ -7,7 +7,7 @@
 **Code**: <TODO>
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/GemsLab/MultiLENS/master/overview.png" width="550"  alt="Overview of node2bits">
+<img src="https://derekdijin.github.io/assest/projects/node2bits_overview_final.jpg" width="550"  alt="Overview of node2bits">
 </p>
 
 
