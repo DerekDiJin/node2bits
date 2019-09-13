@@ -6,10 +6,7 @@ import math, time, os, sys, random
 from collections import deque
 import pickle
 import itertools
-from util import *
-
-import matplotlib
-import matplotlib.pyplot as plt
+import argparse
 
 import scipy.sparse as sps
 from scipy.sparse import coo_matrix
@@ -21,19 +18,12 @@ from sklearn.cluster import KMeans
 from sklearn.decomposition import NMF, DictionaryLearning
 from sklearn.manifold import TSNE
 from sklearn.preprocessing import normalize
-
 from sklearn.feature_extraction import FeatureHasher
+
 import collections
 from collections import defaultdict
 
-
-def get_sketch_b(K, P, idx):
-
-	file_name = 'sketch_' + str(idx) + '.tsv'
-	result = np.genfromtxt(file_name, delimiter='\t', dtype=int)
-
-	return result
-
+from util import *
 
 def get_sketch(K, P, idx):
 
@@ -291,33 +281,6 @@ def parse_weighted_temporal(input_file_path, delimiter):
 	return check_eq, num_nodes, num_edges, adj_matrix_global, edge_time_dict, time_edge_dict, start_time, end_time
 
 
-def svd_emb(PSs, Ks):
-
-
-	for idx in range(len(Ks)):
-		Ki = Ks[idx]
-		PSi = PSs[idx]
-		emb_temp = feature_2_embedding(PSi, Ki)
-
-		if idx == 0:
-			emb = emb_temp
-		else:
-			emb = np.concatenate((emb, emb_temp), axis=1)
-
-	return emb
-
-
-def feature_2_embedding(feature_matrix = None, k = 17):
-
-	temp = sps.csc_matrix(feature_matrix)
-	U,s,V = sparsesvd.sparsesvd(temp, k)
-
-	S = np.diag(s)
-	emb = np.dot(U.T, (S ** 0.5))
-	# g_sum = np.dot((S**0.5), V)
-
-	return emb
-
 
 def construct_cat(input_gt_path, delimiter):
 	
@@ -357,6 +320,28 @@ def construct_cat(input_gt_path, delimiter):
 	fIn.close()
 	return result, id_cat_dict
 
+def parse_args():
+	'''
+	Parses the arguments.
+	'''
+	parser = argparse.ArgumentParser(description=": Bridging Network Embedding and Summarization.")
+
+	parser.add_argument('--input', nargs='?', default='../graph/test.tsv', help='Input graph file path')
+
+	parser.add_argument('--cat', nargs='?', default='../graph/test_cat.tsv', help='Input node category file path')
+
+	parser.add_argument('--output', nargs='?', default='../emb/test_emb.tsv', help='Embedding file path')
+
+	parser.add_argument('--dim', type=int, default=128, help='Embedding dimension')
+
+	parser.add_argument('--L', type=int, default=2, help='Subgraph level')
+
+	parser.add_argument('--base', type=int, default=4, help='Base constant of logarithm histograms')
+
+	parser.add_argument('--operators', default=['mean', 'var', 'sum', 'max', 'min', 'L1', 'L2'], nargs="+", help='Relational operators to use.')
+
+	return parser.parse_args()
+
 
 if __name__ == '__main__':
 	
@@ -364,7 +349,6 @@ if __name__ == '__main__':
 		sys.exit('usage: stats_edges.py <input_file_path> <input_gt_path> <output_file_path>')
 
 
-	# assume the graph is undirected, unweighted
 	weighted = True
 	directed = True
 
@@ -372,12 +356,6 @@ if __name__ == '__main__':
 	input_gt_path = sys.argv[2]
 	output_file_path = sys.argv[3]
 
-	# cur_file_path = str(Path().resolve().parent)
-
-	# input_file_path = cur_file_path + '/link_prediction_graphs/yahoo-msg-heter/yahoo-msg-heter_wei_sample_0.6.tsv'
-	# input_gt_path = cur_file_path + '/link_prediction_graphs/yahoo-msg-heter/yahoo-msg-heter_cat.tsv'
-	# input_file_path = cur_file_path + '/link_prediction_graphs/citseer/citseer_wei_splitted_base_sample_0.6.tsv'
-	# input_gt_path = cur_file_path + '/link_prediction_graphs/citseer/citseer_wei_splitted_cat.tsv'
 
 	# input_file_path = cur_file_path + '/static_graphs/citseer_wei_splitted_base.tsv'
 	# input_gt_path = cur_file_path + '/static_graphs/citseer_wei_splitted_cat.tsv'
@@ -419,17 +397,9 @@ if __name__ == '__main__':
 	num_buckets = 4	#2
 	bucket_max_value = 30
 
-	Ks = [K*1/3, K/3, K/3]
+	Ks = [K/3, K/3, K/3]
 	Ts = [4, 4, 4]
-	# Ks = [K/5, K/5, K/5, K/5, K/5]
 
-	# Ks = [K/4, K/4, K/4, K/4]
-
-	# Ks = [K/3, K/3, K/3]
-
-	# Ks = [K/2, K/2]
-
-	# Ks = [K]
 	Ts = [4 for _ in range(len(Ks))]
 	dist_scope = len(Ks)
 
@@ -471,12 +441,6 @@ if __name__ == '__main__':
 
 
 	tables, rep = hash_func(PSs, Ks, Ts)
-
-	ifSVD = False
-
-	if ifSVD:
-		emb = svd_emb(PSs, Ks)
-		np.savetxt('rep_svd.tsv', emb.round(6), fmt='%.6f', delimiter = '\t')
 
 	print '-------------'
 	np.savetxt('rep.tsv', rep, fmt='%i', delimiter = '\t')
