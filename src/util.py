@@ -416,6 +416,17 @@ class RW():
 # Common tools to use
 ########################################################
 
+def get_delimiter(input_file_path):
+	delimiter = " "
+	if ".csv" in input_file_path:
+		delimiter = ","
+	elif ".tsv" in input_file_path:
+		delimiter = "\t"
+	else:
+		sys.exit('Format not supported.')
+
+	return delimiter
+
 def alias_setup(probs):
 	'''
 	Compute utility lists for non-uniform sampling from discrete distributions.

@@ -324,7 +324,7 @@ def parse_args():
 	'''
 	Parses the arguments.
 	'''
-	parser = argparse.ArgumentParser(description=": Bridging Network Embedding and Summarization.")
+	parser = argparse.ArgumentParser(description="node2bits: Compact Time- and Attribute-aware Node Representations for User Stitching.")
 
 	parser.add_argument('--input', nargs='?', default='../graph/test.tsv', help='Input graph file path')
 
@@ -334,11 +334,13 @@ def parse_args():
 
 	parser.add_argument('--dim', type=int, default=128, help='Embedding dimension')
 
-	parser.add_argument('--L', type=int, default=2, help='Subgraph level')
+	parser.add_argument('--scope', type=int, default=3, help='Temporal distance to consider')
 
 	parser.add_argument('--base', type=int, default=4, help='Base constant of logarithm histograms')
 
-	parser.add_argument('--operators', default=['mean', 'var', 'sum', 'max', 'min', 'L1', 'L2'], nargs="+", help='Relational operators to use.')
+	parser.add_argument('--walk_num', type=int, default=10, help='The number of walks per node')
+
+	parser.add_argument('--walk_length', type=int, default=20, help='The length of the walk')
 
 	return parser.parse_args()
 
@@ -356,59 +358,50 @@ if __name__ == '__main__':
 	input_gt_path = sys.argv[2]
 	output_file_path = sys.argv[3]
 
+	dim = args.dim
+	scope = args.scope
+	num_buckets = args.base
+	walks_num = args.walk_num
+	walk_length = args.walk_length
 
-	# input_file_path = cur_file_path + '/static_graphs/citseer_wei_splitted_base.tsv'
-	# input_gt_path = cur_file_path + '/static_graphs/citseer_wei_splitted_cat.tsv'
+	print '----------------------------------'
+	print '[Input graph file] ' + input_file_path
+	print '[Input category file] ' + input_gt_path
+	print '[Output embedding file] ' + output_file_path
+	print '[Embedding dimension] ' + str(dim)
+	print '[Number of levels] ' + str(L)
+	print '[Base of logarithm binning] ' + str(num_buckets)
+	print '[The number of walks] ' + str(walks_num)
+	print '[The length of a walk]' + str(walk_length)
+	print '----------------------------------'
 
-	# input_file_path = cur_file_path + '/real_graphs/wiki-talk-temporal_temp_splitted.tsv'
-	# input_gt_path = cur_file_path + '/real_graphs/wiki-talk-temporal_temp_splitted_cat.tsv'
-	# input_file_path = cur_file_path + '/real_graphs/soc-sign-bitcoinotc_wei_temp_splitted.tsv'
-	# input_gt_path = cur_file_path + '/real_graphs/soc-sign-bitcoinotc_wei_temp_splitted_cat.tsv'
-	# input_file_path = cur_file_path + '/real_graphs/soc-sign-bitcoinalpha_wei_temp_splitted_base.tsv'
-	# input_gt_path = cur_file_path + '/real_graphs/soc-sign-bitcoinalpha_wei_temp_splitted_cat.tsv'
-	# input_file_path = cur_file_path + '/real_graphs/digg_wei_temp_undir_splitted.tsv'
-	# input_gt_path = cur_file_path + '/real_graphs/digg_wei_temp_undir_splitted_cat.tsv'
 
 	##############################
 
-	delimiter = " "
-	if ".csv" in input_file_path:
-		delimiter = ","
-	elif ".tsv" in input_file_path:
-		delimiter = "\t"
-	else:
-		sys.exit('Format not supported.')
+	delimiter = get_delimiter(input_file_path)
 
 	''' adj_matrix: lil format adj matrix
 		edge_time_dict: (src, dst, wei) - time_1, time_2, ...
 	'''
 	check_eq, num_nodes, num_edges, adj_matrix, edge_time_dict, time_edge_dict, start_time, end_time = parse_weighted_temporal(input_file_path, delimiter)
 
-	############################################################################################################
+	##########################################
 	# Setup
-	############################################################################################################
+	##########################################
 
-	walks_num = 10
-	walk_length = 20
 	nodes_to_explore = range(num_nodes)
 	base_features = ['degree', 'indegree', 'outdegree']
 
-	K = 128
-	num_buckets = 4	#2
-	bucket_max_value = 30
-
-	Ks = [K/3, K/3, K/3]
-	Ts = [4, 4, 4]
-
-	Ts = [4 for _ in range(len(Ks))]
-	dist_scope = len(Ks)
+	Ks = [dim/scope] * (scope - 1)
+	Ks += [dim - sum(Ks)]
+	Ts = [4 for _ in range(len(dims))]
 
 	init_mod = 'early'
 	walk_mod = 'early'
 
 	graph_mod_external = 'static' # <Set this to 'static' only when we want to perform static analysis on dynamic graphs todo: remove this if necessary>
 
-	############################################################################################################
+	##########################################
 
 
 	graph_mod = 'static' if edge_time_dict is None else 'dynamic'
@@ -425,10 +418,10 @@ if __name__ == '__main__':
 	CAT_DICT, ID_CAT_DICT = construct_cat(input_gt_path, delimiter)
 
 	G = Graph(adj_matrix = adj_matrix, edge_time_dict = edge_time_dict, num_nodes = num_nodes, num_edges = num_edges, weighted = weighted, directed = directed, check_eq = check_eq, 
-		start_time = start_time, end_time = end_time, num_buckets = num_buckets, bucket_max_value = bucket_max_value, cat_dict = CAT_DICT, id_cat_dict = ID_CAT_DICT, 
-		neighbor_list_static = neighbor_list_static, neighbor_list_dynamic = neighbor_list_dynamic, time_edge_dict = time_edge_dict, dist_scope = dist_scope)
+		start_time = start_time, end_time = end_time, num_buckets = num_buckets, bucket_max_value = 30, cat_dict = CAT_DICT, id_cat_dict = ID_CAT_DICT, 
+		neighbor_list_static = neighbor_list_static, neighbor_list_dynamic = neighbor_list_dynamic, time_edge_dict = time_edge_dict, dist_scope = scope)
 
-	walks, S_out = G.simulate_walks(walks_num, walk_length, nodes_to_explore, walk_mod, graph_mod, init_mod)
+	walks, S_out = G.simulate_walks(walk_num, walk_length, nodes_to_explore, walk_mod, graph_mod, init_mod)
 	sps.save_npz('./S.npz', sps.coo_matrix(S_out))
 
 	fOut = open('walks.txt', 'w')
@@ -437,7 +430,7 @@ if __name__ == '__main__':
 	fOut.close()
 
 
-	PSs = construct_prox_structure(G, nodes_to_explore, base_features, S_out, dist_scope)
+	PSs = construct_prox_structure(G, nodes_to_explore, base_features, S_out, scope)
 
 
 	tables, rep = hash_func(PSs, Ks, Ts)
@@ -446,8 +439,6 @@ if __name__ == '__main__':
 	np.savetxt('rep.tsv', rep, fmt='%i', delimiter = '\t')
 	sps.save_npz('./rep.npz', sps.coo_matrix(rep))
 	
-	# table_1s = tables[0]
-	# print len(table_1s)
 	
 	fOut = open('hashtable_1s.tsv', 'w')
 	for key in tables[0]:
