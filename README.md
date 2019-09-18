@@ -23,8 +23,14 @@ Di Jin, Mark Heimann, Ryan A. Rossi, and Danai Koutra. "Node2BITS: Compact Time-
 
 **Code**: 
 
+*Graph Input*:
+
+
 *Usage*:
 
-'''
-python 
-'''
+```
+python main.py --input <input_graph_file_path> --cat <input_cat_file_path> --output <output_embedding_file_path> \
+	--dim <embedding_dimension> --scope <max_temporal_distance> --base <constant of logarithm binning> \
+	--walk_num <#walks_per_node> --walk_length <walk_length> --walk_mod <temporal_random_walk_bias> --ignore_time <if_ignore_time>
+
+```
