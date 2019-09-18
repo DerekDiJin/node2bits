@@ -61,7 +61,6 @@ The complete command to run node2bits is as follows.
 python main.py --input <graph_file_path> --cat <category_file_path> --output <embedding_file_path> --dim <embedding_dimension> 
 	--scope <max_temporal_distance> --base <constant of logarithm binning> --walk_num <#walks_per_node> --walk_length <walk_length> 
 	--walk_mod <temporal_random_walk_bias> --ignore_time <if_ignore_time>
-
 ```
 
 - input, the input graph file stated under the "Graph Input" section above. Default value: '../graph/test.tsv'
