@@ -27,14 +27,14 @@ Di Jin, Mark Heimann, Ryan A. Rossi, and Danai Koutra. "Node2BITS: Compact Time-
 
 node2bits takes two files as input, the graph file and the category file.
 
-- Input graph file
+## Input graph file
 The input graph file can be either static or temporal edge list in the following format separated by tab:
 ```
 <src> <dst> <weight> <timestamp> (optional)
 ```
 node2bits will automatically determine if the input graph is static or temporal. The edge list is assumed to be re-ordered consecutively from 0, i.e., the minimum node ID is 0, and the maximum node ID is <#node - 1>. A toy static graph is under "/graph/" directory.
 
-- Input category file
+## Input category file
 The category file is a mapping between the node ID and its type (e.g., IP, cookie, web agent) with the following format separated by tab:
 ```
 <category> <id_initial> <id_ending>
