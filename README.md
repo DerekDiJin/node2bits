@@ -53,7 +53,7 @@ But if the node IDs are not grouped by the types, this implementation also suppo
 ```
 which is just the 1-1 mapping. The code accepts either format.
 
-## Inputs
+## Usage
 
 The complete command to run node2bits is as follows.
 
@@ -64,5 +64,20 @@ python main.py --input <graph_file_path> --cat <category_file_path> --output <em
 
 ```
 
-- input, the input graph file stated under the "Graph Input" section above.
-- cat, 
+- input, the input graph file stated under the "Graph Input" section above. Default value: '../graph/test.tsv'
+- cat, the input category file stated under the "Graph Input" section above. Default value: '../graph/test_cat.tsv'
+- output, the ouput file of the embedding, which is non-sparse and node-wise binary hashcode. Default value: '../emb/test_emb.txt'
+- dim, the dimension of the embedding. Default value: 128
+- scope, the maximum temporal distance to consider. Default value: 3
+- base, the base constant of logarithm binning. Default value: 4
+- walk_num, the number of temporal random walk to perform per node. Default value: 10
+- walk_length, the length of the temporal random walk. Default value: 20
+- walk_mod, the bias of temporal random walk, can be ```<random>, <early>, <late>```. Default value: 'early'
+- ignore_time, a Boolean variable only used when running node2bits on a temporal input graph regardless of its time, i.e., only consider the first 3 columns of the temporal edgelist. Default value: False.
+
+
+# Question & troubleshooting
+
+If you encounter any problems running the code, pls feel free to contact Di Jin (dijin@umich.edu)
+
+
