@@ -21,7 +21,7 @@ Di Jin, Mark Heimann, Ryan A. Rossi, and Danai Koutra. "Node2BITS: Compact Time-
 ```
 
 
-**Code**: 
+# Code
 
 ## Inputs:
 
@@ -53,7 +53,7 @@ But if the node IDs are not grouped by the types, this implementation also suppo
 ```
 which is just the 1-1 mapping. The code accepts either format.
 
-*Usage*:
+## Inputs
 
 The complete command to run node2bits is as follows.
 
