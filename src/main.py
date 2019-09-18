@@ -312,7 +312,7 @@ def parse_args():
 
 	parser.add_argument('--cat', nargs='?', default='../graph/test_cat.tsv', help='Input node category file path')
 
-	parser.add_argument('--output', nargs='?', default='../emb/test_emb.tsv', help='Embedding file path')
+	parser.add_argument('--output', nargs='?', default='../emb/test_emb.txt', help='Embedding file path')
 
 	parser.add_argument('--dim', type=int, default=128, help='Embedding dimension')
 
