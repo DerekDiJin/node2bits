@@ -58,13 +58,14 @@ which is just the 1-1 mapping. The code accepts either format.
 The complete command to run node2bits is as follows.
 
 ```
-python main.py --input <graph_file_path> --cat <category_file_path> --output <embedding_file_path> --dim <embedding_dimension> 
+python main.py --input <graph_file_path> --cat <category_file_path> --output <embedding_file_path> --attri <node_attribute_file_path> --dim <embedding_dimension> 
 	--scope <max_temporal_distance> --base <constant of logarithm binning> --walk_num <#walks_per_node> --walk_length <walk_length> 
 	--walk_mod <temporal_random_walk_bias> --ignore_time <if_ignore_time>
 ```
 
 - input, the input graph file stated under the "Graph Input" section above. Default value: '../graph/test.tsv'
 - cat, the input category file stated under the "Graph Input" section above. Default value: '../graph/test_cat.tsv'
+- attri, the optional input node attribute file. See the exemplar input file for reference: '../graph/test_attri.tsv'. Default value: None
 - output, the ouput file of the embedding, which is non-sparse and node-wise binary hashcode. Default value: '../emb/test_emb.txt'
 - dim, the dimension of the embedding. Default value: 128
 - scope, the maximum temporal distance to consider. Default value: 3
